@@ -56,17 +56,6 @@ def main():
             new_row = [float(item) for item in row]
             training_data.append(new_row)
 
-    # print("bias 1")
-    # print(biases_1)
-    # print("bias 2")
-    # print(biases_2)
-    # print("weights 1")
-    # print(weights_1)
-    # print("weights 2")
-    # print(weights_2)
-    # print("training")
-    # print(training_data)
-
     # loop for number of epochs
     for epoch in range(1):
 
@@ -83,29 +72,44 @@ def main():
             # no longer need the data row
             del data
 
-            # set the initial phi_v to the inputs
-            phi_v = [inputs]
+            # set the initial phi_v to the inputs for convenience
+            phi_v = []
 
             # loop over layers
             for layer in range(2):
 
+                # add placeholder for next layer
                 phi_v.append([])
+
                 # loop over nodes in layer
                 for node in range(len(weights[layer])):
 
                     # variable to track induced local field
                     v = 0
-                    # loop over the inputs to the node, updating v
-                    for i in range(len(phi_v[layer])):
-                        v += weights[layer][node][i] * phi_v[layer][i]
+
+                    # if the layer is the first hidden layer, use inputs instead of y's
+                    # from previous layer
+                    if layer is 0:
+                        for i in range(len(inputs)):
+                            v += weights[layer][node][i] * inputs[i]
+                    else:
+                        # loop over the phi_v, or y, input to the node, updating v
+                        for i in range(len(phi_v[layer])):
+                            v += weights[layer][node][i] * phi_v[layer][i]
 
                     # add the bias term for the node
                     v += biases[layer][node]
 
                     # store the phi(v) for the node
-                    phi_v[layer+1].append(phi(v))
+                    phi_v[layer].append(phi(v))
 
-    print(phi_v)
+                # END node loop
+
+            # END layer loop
+
+        # END item loop
+
+    # END epcoh loop
 
 
 def phi(v):
