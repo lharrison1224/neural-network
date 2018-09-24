@@ -92,10 +92,11 @@ def main():
                     if layer is 0:
                         for i in range(len(inputs)):
                             v += weights[layer][node][i] * inputs[i]
+
                     else:
                         # loop over the phi_v, or y, input to the node, updating v
-                        for i in range(len(phi_v[layer])):
-                            v += weights[layer][node][i] * phi_v[layer][i]
+                        for i in range(len(phi_v[layer-1])):
+                            v += weights[layer][node][i] * phi_v[layer-1][i]
 
                     # add the bias term for the node
                     v += biases[layer][node]
@@ -104,7 +105,7 @@ def main():
                     phi_v[layer].append(phi(v))
 
                 # END node loop
-
+            print(phi_v)
             # END layer loop
 
         # END item loop
