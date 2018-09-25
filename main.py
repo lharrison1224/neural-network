@@ -109,10 +109,6 @@ def main():
                     # store the phi(v) for the node
                     phi_v[layer].append(phi(v))
 
-                    # END node loop
-
-                # END layer loop
-
             # loop over output nodes
             errors = []
             for output_node in range(len(phi_v[NUM_LAYERS-1])):
