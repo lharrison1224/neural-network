@@ -151,39 +151,43 @@ def main():
                     for to_node in range(len(weights[layer][from_node])):
                         new_weight = weights[layer][from_node][to_node]
 
+                        # for first layer, the y's are inputs
                         if layer is 0:
                             new_weight += LEARNING_RATE * \
                                 deltas[layer][from_node] * inputs[to_node]
 
+                        # all other layers we use y's from previous layer
                         else:
                             new_weight += LEARNING_RATE * \
                                 deltas[layer][from_node] * \
                                 phi_v[layer-1][to_node]
 
+                        # include momentum
                         new_weight += MOMENTUM * (
                             weights[layer][from_node][to_node] - prev_weights[layer][from_node][to_node])
 
+                        # update the two weight arrays
                         prev_weights[layer][from_node][to_node] = weights[layer][from_node][to_node]
                         weights[layer][from_node][to_node] = new_weight
 
-                    # start bias
                     new_bias = biases[layer][from_node]
-                    if layer is 0:
-                        new_bias += LEARNING_RATE * \
-                            deltas[layer][from_node]
-                    else:
-                        new_bias += LEARNING_RATE * \
-                            deltas[layer][from_node]
 
+                    # adjust bias with the delta for the node
+                    new_bias += LEARNING_RATE * \
+                        deltas[layer][from_node]
+
+                    # add momentum for the bias
                     new_bias += MOMENTUM * \
                         (biases[layer][from_node] -
                             prev_biases[layer][from_node])
 
+                    # update the bias arrays
                     prev_biases[layer][from_node] = biases[layer][from_node]
                     biases[layer][from_node] = new_bias
 
             # END item loop
 
+        print("Completed epcoh {}".format(epoch))
         # END epcoh loop
 
 
