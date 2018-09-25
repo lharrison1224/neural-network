@@ -1,5 +1,6 @@
 import math
 import csv
+import copy
 
 LEARNING_RATE = 0.7
 MOMENTUM = 0.3
@@ -47,6 +48,8 @@ def main():
 
     weights = [weights_1, weights_2]
     biases = [biases_1, biases_2]
+    prev_weights = []
+    prev_biases = []
 
     # initialize empty training data array
     training_data = []
@@ -135,6 +138,49 @@ def main():
                                                               1][next_node] * weights[layer+1][next_node][node]
                         deltas[layer].append(
                             phi_prime(phi_v[layer][node]) * sum_delta_times_weights)
+
+            # update weights
+
+            # deep copy to get a value copy, not reference copy
+            if k is 0:
+                prev_weights = copy.deepcopy(weights)
+                prev_biases = copy.deepcopy(biases)
+
+            for layer in range(NUM_LAYERS):
+                for from_node in range(len(weights[layer])):
+                    for to_node in range(len(weights[layer][from_node])):
+                        new_weight = weights[layer][from_node][to_node]
+
+                        if layer is 0:
+                            new_weight += LEARNING_RATE * \
+                                deltas[layer][from_node] * inputs[to_node]
+
+                        else:
+                            new_weight += LEARNING_RATE * \
+                                deltas[layer][from_node] * \
+                                phi_v[layer-1][to_node]
+
+                        new_weight += MOMENTUM * (
+                            weights[layer][from_node][to_node] - prev_weights[layer][from_node][to_node])
+
+                        prev_weights[layer][from_node][to_node] = weights[layer][from_node][to_node]
+                        weights[layer][from_node][to_node] = new_weight
+
+                    # start bias
+                    new_bias = biases[layer][from_node]
+                    if layer is 0:
+                        new_bias += LEARNING_RATE * \
+                            deltas[layer][from_node]
+                    else:
+                        new_bias += LEARNING_RATE * \
+                            deltas[layer][from_node]
+
+                    new_bias += MOMENTUM * \
+                        (biases[layer][from_node] -
+                            prev_biases[layer][from_node])
+
+                    prev_biases[layer][from_node] = biases[layer][from_node]
+                    biases[layer][from_node] = new_bias
 
             # END item loop
 
