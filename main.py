@@ -20,6 +20,9 @@ def main():
     biases_1 = []
     biases_2 = []
 
+    # array to store SSE for each epoch
+    sses = []
+
     # read biases for first layer
     with open("data/b1.csv", "r", encoding="utf-8-sig") as csvfile:
         contents = csv.reader(csvfile)
@@ -63,6 +66,9 @@ def main():
 
     # loop for number of epochs
     for epoch in range(NUM_EPOCHS):
+
+        # sum of squared errors for the epoch
+        sse = 0
 
         # loop over pieces of data in training set
         for k in range(len(training_data)):
@@ -114,6 +120,10 @@ def main():
             for output_node in range(len(phi_v[NUM_LAYERS-1])):
                 errors.append(
                     expected_outputs[output_node] - phi_v[NUM_LAYERS-1][output_node])
+
+            # calculate the contribution to SSE for this training item
+            for error in errors:
+                sse += error ** 2
 
             deltas = [[] for _ in range(NUM_LAYERS)]
             # calculating deltas
@@ -183,7 +193,12 @@ def main():
 
             # END item loop
 
-        print("Completed epcoh {}".format(epoch))
+        # divide the SSE by 2 as per algorithm in class
+        sse /= 2
+        sses.append(sse)
+
+        print("Completed epcoh {} with SSE = {}".format(epoch, sse))
+        print(sses)
         # END epcoh loop
 
 
