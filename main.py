@@ -193,22 +193,21 @@ def main():
 
             # END item loop
 
-        # divide the SSE by 2 as per algorithm in class
-        sse /= 2
+        # divide the SSE by 2 * k as per algorithm in class
+        sse /= (2 * len(training_data))
         sses.append(sse)
 
-        print("Completed epcoh {} with SSE = {}".format(epoch, sse))
-        print(sses)
+        print("Completed epcoh {0}\tSSE = {1:.4f}".format(epoch+1, sse))
         # END epcoh loop
 
 
 def phi(v):
-    if ACTIVATION_FUNCTION is "SIGMOID":
+    if ACTIVATION_FUNCTION == "SIGMOID":
         return 1/(1 + math.exp(-1 * ACTIVATION_SLOPE_PARAM * v))
 
 
 def phi_prime(phi_v):
-    if ACTIVATION_FUNCTION is "SIGMOID":
+    if ACTIVATION_FUNCTION == "SIGMOID":
         return ACTIVATION_SLOPE_PARAM * phi_v * (1-phi_v)
 
 
