@@ -5,8 +5,8 @@ import random
 import datetime
 import matplotlib.pyplot as plt
 
-LEARNING_RATES = [0.01, 0.2, 0.7, 0.9]
-MOMENTUM = 0.3
+LEARNING_RATE = 0.01
+MOMENTUMS = [0, 0.6]
 ACTIVATION_SLOPE_PARAM = 1
 ACTIVATION_FUNCTION = "SIGMOID"
 LAYERS = [11, 2]
@@ -54,11 +54,11 @@ def main():
             training_data.append(new_row)
 
     fig, ax = plt.subplots()
-    ax.set(title="Convergence with Different Learning Rates",
+    ax.set(title="Convergence with Different Momentums",
            xlabel="Epoch", ylabel="SSE")
 
     start = datetime.datetime.now()
-    for LEARNING_RATE in LEARNING_RATES:
+    for MOMENTUM in MOMENTUMS:
         prev_biases = []
         prev_weights = []
 
@@ -233,7 +233,7 @@ def main():
 
             # END epcoh loop
 
-    ax.legend(LEARNING_RATES)
+    ax.legend(MOMENTUMS)
     plt.show()
 
     # begin experiement section
