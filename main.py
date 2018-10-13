@@ -3,10 +3,13 @@ import csv
 import copy
 import random
 import datetime
+import itertools
+from sklearn.metrics import confusion_matrix
 import matplotlib.pyplot as plt
+import numpy as np
 
-LEARNING_RATE = 0.01
-MOMENTUMS = [0, 0.6]
+LEARNING_RATE = 0.7
+MOMENTUM = 0.3
 ACTIVATION_SLOPE_PARAM = 1
 ACTIVATION_FUNCTION = "SIGMOID"
 LAYERS = [11, 2]
@@ -15,9 +18,16 @@ NUM_INPUT_FEATURES = 3
 # the max number of epochs that will train if SSE does not converge below threshold
 NUM_EPOCHS = 100
 SSE_THRESHOLD = 0.001
+NUM_FOLDS = 5
 
 
 def main():
+
+    # cnf_matrix = confusion_matrix([0, 1, 1, 0], [0, 1, 1, 0])
+    # plt.figure()
+    # plot_confusion_matrix(cnf_matrix, classes=["0", "1"], normalize=True,
+    #                       title='Confusion matrix, without normalization')
+    # plt.show()
 
     weights = []
     biases = []
@@ -44,21 +54,21 @@ def main():
     prev_biases = []
 
     # initialize empty training data array
-    training_data = []
+    training_data_full = []
 
     # read training data
     with open("data/training.csv", "r", encoding="utf-8-sig") as csvfile:
         contents = csv.reader(csvfile)
         for row in contents:
             new_row = [float(item) for item in row]
-            training_data.append(new_row)
-
-    fig, ax = plt.subplots()
-    ax.set(title="Convergence with Different Momentums",
-           xlabel="Epoch", ylabel="SSE")
+            training_data_full.append(new_row)
 
     start = datetime.datetime.now()
-    for MOMENTUM in MOMENTUMS:
+
+    training_folds = [training_data_full[i*(int(len(training_data_full)/NUM_FOLDS)):(
+        i+1)*(int(len(training_data_full)/NUM_FOLDS))] for i in range(NUM_FOLDS)]
+
+    for fold in range(NUM_FOLDS):
         prev_biases = []
         prev_weights = []
 
@@ -66,6 +76,13 @@ def main():
         biases = []
 
         sses = []
+
+        training_data = []
+        for i in range(NUM_FOLDS):
+            if i != fold:
+                training_data += training_folds[i]
+
+        validation_data = training_folds[fold]
 
         # randomly initalize our network weights
         for layer in range(NUM_LAYERS):
@@ -222,19 +239,22 @@ def main():
             if sses[-1] < SSE_THRESHOLD:
                 print("Training complete! Time to train: {}".format(
                     datetime.datetime.now()-start))
-                ax.plot(sses)
+                # ax.plot(sses)
                 break
 
-            if epoch == NUM_EPOCHS-1:
-                ax.plot(sses)
+            # if epoch == NUM_EPOCHS-1:
+            #     ax.plot(sses)
 
             # shuffle the order of the training data
             random.shuffle(training_data)
 
             # END epcoh loop
 
-    ax.legend(MOMENTUMS)
-    plt.show()
+        # DO VALIDATION WORK HERE
+
+        # END fold
+    # ax.legend(MOMENTUMS)
+    # plt.show()
 
     # begin experiement section
     # create sampling from the [-2.1, 2.1] x [-2.1, 2.1] square
@@ -314,6 +334,36 @@ def phi(v):
 def phi_prime(phi_v):
     if ACTIVATION_FUNCTION == "SIGMOID":
         return ACTIVATION_SLOPE_PARAM * phi_v * (1-phi_v)
+
+
+def plot_confusion_matrix(cm, classes,
+                          normalize=False,
+                          title='Confusion matrix',
+                          cmap=plt.cm.Blues):
+    """
+    This function prints and plots the confusion matrix.
+    Normalization can be applied by setting `normalize=True`.
+    """
+    if normalize:
+        cm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
+
+    plt.imshow(cm, interpolation='nearest', cmap=cmap)
+    plt.title(title)
+    plt.colorbar()
+    tick_marks = np.arange(len(classes))
+    plt.xticks(tick_marks, classes, rotation=45)
+    plt.yticks(tick_marks, classes)
+
+    fmt = '.2f' if normalize else 'd'
+    thresh = cm.max() / 2.
+    for i, j in itertools.product(range(cm.shape[0]), range(cm.shape[1])):
+        plt.text(j, i, format(cm[i, j], fmt),
+                 horizontalalignment="center",
+                 color="white" if cm[i, j] > thresh else "black")
+
+    plt.ylabel('True label')
+    plt.xlabel('Predicted label')
+    plt.tight_layout()
 
 
 if __name__ == "__main__":
