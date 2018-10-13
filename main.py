@@ -263,6 +263,7 @@ def main():
     # we now have classifications for our testing set
     plt.scatter([x[0] for x in testing_data], [x[1]
                                                for x in testing_data], c=[colors[x] for x in classifications])
+    plt.title("Cross with 3rd Feature")
     plt.show()
 
 
