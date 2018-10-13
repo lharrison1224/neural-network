@@ -103,5 +103,8 @@ venv.bak/
 # mypy
 .mypy_cache/
 
+<<<<<<< HEAD
 .vscode
+=======
+>>>>>>> 3fd2e2e4b166cd5abf0e5e75387b813b9dd146b4
 .DS_Store
