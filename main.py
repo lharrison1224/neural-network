@@ -1,56 +1,47 @@
 import math
 import csv
 import copy
+import random
+import datetime
 
 LEARNING_RATE = 0.7
 MOMENTUM = 0.3
 ACTIVATION_SLOPE_PARAM = 1
 ACTIVATION_FUNCTION = "SIGMOID"
-NUM_LAYERS = 2
-NUM_EPOCHS = 1
+LAYERS = [11, 2]
+NUM_LAYERS = len(LAYERS)
+NUM_INPUT_FEATURES = 3
+# the max number of epochs that will train if SSE does not converge below threshold
+NUM_EPOCHS = 1000
+SSE_THRESHOLD = 0.001
 
 
 def main():
 
-    # initialize empty weights arrays
-    weights_1 = []
-    weights_2 = []
+    weights = []
+    biases = []
 
-    # initialize empty bias arrays
-    biases_1 = []
-    biases_2 = []
+    # randomly initalize our network weights
+    for layer in range(NUM_LAYERS):
+        layer_holder = []
+        for node in range(LAYERS[layer]):
+            if layer == 0:
+                row = [random.uniform(-1, 1)
+                       for _ in range(NUM_INPUT_FEATURES)]
+            else:
+                row = [random.uniform(-1, 1) for _ in range(LAYERS[layer-1])]
+            layer_holder.append(row)
+        weights.append(layer_holder)
+
+    for layer in range(NUM_LAYERS):
+        biases.append([random.uniform(-1, 1) for _ in range(LAYERS[layer])])
+
+    print(weights)
+    print(biases)
 
     # array to store SSE for each epoch
     sses = []
 
-    # read biases for first layer
-    with open("data/b1.csv", "r", encoding="utf-8-sig") as csvfile:
-        contents = csv.reader(csvfile)
-        for row in contents:
-            biases_1.append(float(row[0]))
-
-    # read the weights for first layer
-    with open("data/w1.csv", "r", encoding="utf-8-sig") as csvfile:
-        contents = csv.reader(csvfile)
-        for row in contents:
-            new_row = [float(item) for item in row]
-            weights_1.append(new_row)
-
-    # read the biases for the second layer
-    with open("data/b2.csv", "r", encoding="utf-8-sig") as csvfile:
-        contents = csv.reader(csvfile)
-        for row in contents:
-            biases_2.append(float(row[0]))
-
-    # read the weights for the second layer
-    with open("data/w2.csv", "r", encoding="utf-8-sig") as csvfile:
-        contents = csv.reader(csvfile)
-        for row in contents:
-            new_row = [float(item) for item in row]
-            weights_2.append(new_row)
-
-    weights = [weights_1, weights_2]
-    biases = [biases_1, biases_2]
     prev_weights = []
     prev_biases = []
 
@@ -64,6 +55,7 @@ def main():
             new_row = [float(item) for item in row]
             training_data.append(new_row)
 
+    start = datetime.datetime.now()
     # loop for number of epochs
     for epoch in range(NUM_EPOCHS):
 
@@ -198,6 +190,15 @@ def main():
         sses.append(sse)
 
         print("Completed epcoh {0}\tSSE = {1:.4f}".format(epoch+1, sse))
+
+        if sse < SSE_THRESHOLD:
+            print("Training complete! Time to train: {}".format(
+                datetime.datetime.now()-start))
+            break
+
+        # shuffle the order of the training data
+        random.shuffle(training_data)
+
         # END epcoh loop
 
 
