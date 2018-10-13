@@ -3,6 +3,7 @@ import csv
 import copy
 import random
 import datetime
+import matplotlib.pyplot as plt
 
 LEARNING_RATE = 0.7
 MOMENTUM = 0.3
@@ -36,9 +37,6 @@ def main():
     for layer in range(NUM_LAYERS):
         biases.append([random.uniform(-1, 1) for _ in range(LAYERS[layer])])
 
-    print(weights)
-    print(biases)
-
     # array to store SSE for each epoch
     sses = []
 
@@ -69,13 +67,12 @@ def main():
             data = training_data[k]
 
             # split the item into its inputs and outputs
-            inputs = data[:3]
-            expected_outputs = data[3:]
+            inputs = data[:NUM_INPUT_FEATURES]
+            expected_outputs = data[NUM_INPUT_FEATURES:]
 
             # no longer need the data row
             del data
 
-            # set the initial phi_v to the inputs for convenience
             phi_v = []
 
             # loop over layers
@@ -200,6 +197,73 @@ def main():
         random.shuffle(training_data)
 
         # END epcoh loop
+
+    # begin experiement section
+    # create sampling from the [-2.1, 2.1] x [-2.1, 2.1] square
+    testing_data = [[round(random.uniform(-2.1, 2.1), 2),
+                     round(random.uniform(-2.1, 2.1), 2), random.uniform(-0.1, 0.1)] for _ in range(1500)]
+
+    classifications = []
+
+    # do a forward pass to get the outputs from the network
+    # loop over pieces of data in testing set
+    for k in range(len(testing_data)):
+
+        # get the specific item out of the testing set
+        data = testing_data[k]
+        inputs = data[:NUM_INPUT_FEATURES]
+
+        # no longer need the data row
+        del data
+
+        testing_phi_v = []
+
+        # loop over layers
+        for layer in range(NUM_LAYERS):
+
+            # add placeholder for next layer
+            testing_phi_v.append([])
+
+            # loop over nodes in layer
+            for node in range(len(weights[layer])):
+
+                # variable to track induced local field
+                v = 0
+
+                # if the layer is the first hidden layer, use inputs instead of y's
+                # from previous layer
+                if layer is 0:
+                    for i in range(len(inputs)):
+                        v += weights[layer][node][i] * inputs[i]
+
+                else:
+                    # loop over the phi_v, or y, input to the node, updating v
+                    for i in range(len(testing_phi_v[layer-1])):
+                        v += weights[layer][node][i] * \
+                            testing_phi_v[layer-1][i]
+
+                # add the bias term for the node
+                v += biases[layer][node]
+
+                # store the phi(v) for the node
+                testing_phi_v[layer].append(phi(v))
+
+        outputs = testing_phi_v[NUM_LAYERS-1]
+        max_output = 0
+        output_class = -1  # invalid to start
+        idx = 0
+        for output in outputs:
+            if output > max_output:
+                max_output = output
+                output_class = idx
+            idx += 1
+        classifications.append(output_class)
+
+    colors = ["#0000FF", "#FF0000"]
+    # we now have classifications for our testing set
+    plt.scatter([x[0] for x in testing_data], [x[1]
+                                               for x in testing_data], c=[colors[x] for x in classifications])
+    plt.show()
 
 
 def phi(v):
