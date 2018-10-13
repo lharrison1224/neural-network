@@ -1,6 +1,6 @@
-# Multi-Layer Perceptron
+# Neural Network
 
-This is a python implementation of the multi-layer perceptron, more commonly known as a nerual network.
+This is a python implementation of the multi-layer perceptron, more commonly known as a nerual network. With additional features like cross-validation, plotting, and NN architecture options.
 
 ## Python Version
 
