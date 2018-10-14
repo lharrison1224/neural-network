@@ -8,15 +8,15 @@ from sklearn.metrics import confusion_matrix
 import matplotlib.pyplot as plt
 import numpy as np
 
-LEARNING_RATE = 0.7
-MOMENTUM = 0.3
+LEARNING_RATE = 0.2
+MOMENTUM = 0.1
 ACTIVATION_SLOPE_PARAM = 1
 ACTIVATION_FUNCTION = "SIGMOID"
-LAYERS = [8, 2]
+LAYERS = [4, 2]
 NUM_LAYERS = len(LAYERS)
 NUM_INPUT_FEATURES = 4
 # the max number of epochs that will train if SSE does not converge below threshold
-NUM_EPOCHS = 100
+NUM_EPOCHS = 500
 SSE_THRESHOLD = 0.001
 NUM_FOLDS = 5
 
@@ -338,7 +338,7 @@ def main():
         cnf_matrix = confusion_matrix(expected, classifications)
         plt.figure()
         plot_confusion_matrix(cnf_matrix, classes=["0", "1"], normalize=True,
-                              title='Confusion Matrix: Fold {}'.format(fold+1))
+                              title='Fold {} ({}:{}:2)'.format(fold+1, NUM_INPUT_FEATURES, LAYERS[0]))
         total_expected += expected
         total_predicted += classifications
         # END fold
@@ -346,7 +346,7 @@ def main():
     cnf_matrix = confusion_matrix(total_expected, total_predicted)
     plt.figure()
     plot_confusion_matrix(cnf_matrix, classes=["0", "1"], normalize=True,
-                          title='Confusion Matrix: All Folds Aggregated')
+                          title='All Folds ({}:{}:2)'.format(NUM_INPUT_FEATURES, LAYERS[0]))
     plt.show()
 
 
