@@ -23,12 +23,6 @@ NUM_FOLDS = 5
 
 def main():
 
-    # cnf_matrix = confusion_matrix([0, 1, 1, 0], [0, 1, 1, 0])
-    # plt.figure()
-    # plot_confusion_matrix(cnf_matrix, classes=["0", "1"], normalize=True,
-    #                       title='Confusion matrix, without normalization')
-    # plt.show()
-
     weights = []
     biases = []
 
@@ -65,8 +59,8 @@ def main():
 
     start = datetime.datetime.now()
 
-    training_folds = [training_data_full[i*(int(len(training_data_full)/NUM_FOLDS)):(
-        i+1)*(int(len(training_data_full)/NUM_FOLDS))] for i in range(NUM_FOLDS)]
+    training_folds = [training_data_full[i*(math.ceil(len(training_data_full)/NUM_FOLDS)):(
+        i+1)*(math.ceil(len(training_data_full)/NUM_FOLDS))] for i in range(NUM_FOLDS)]
 
     for fold in range(NUM_FOLDS):
         prev_biases = []
@@ -250,80 +244,79 @@ def main():
 
             # END epcoh loop
 
-        # DO VALIDATION WORK HERE
+        classifications = []
+        expected = []
 
+        # do a forward pass to get the outputs from the network
+        # loop over pieces of data in testing set
+        for k in range(len(validation_data)):
+
+            # get the specific item out of the testing set
+            data = validation_data[k]
+            inputs = data[:NUM_INPUT_FEATURES]
+
+            # no longer need the data row
+            del data
+
+            testing_phi_v = []
+
+            # loop over layers
+            for layer in range(NUM_LAYERS):
+
+                # add placeholder for next layer
+                testing_phi_v.append([])
+
+                # loop over nodes in layer
+                for node in range(len(weights[layer])):
+
+                    # variable to track induced local field
+                    v = 0
+
+                    # if the layer is the first hidden layer, use inputs instead of y's
+                    # from previous layer
+                    if layer is 0:
+                        for i in range(len(inputs)):
+                            v += weights[layer][node][i] * inputs[i]
+
+                    else:
+                        # loop over the phi_v, or y, input to the node, updating v
+                        for i in range(len(testing_phi_v[layer-1])):
+                            v += weights[layer][node][i] * \
+                                testing_phi_v[layer-1][i]
+
+                    # add the bias term for the node
+                    v += biases[layer][node]
+
+                    # store the phi(v) for the node
+                    testing_phi_v[layer].append(phi(v))
+
+            outputs = testing_phi_v[NUM_LAYERS-1]
+            max_output = 0
+            output_class = -1  # invalid to start
+            idx = 0
+            for output in outputs:
+                if output > max_output:
+                    max_output = output
+                    output_class = idx
+                idx += 1
+            classifications.append(output_class)
+
+        # collect the predictions
+        for item in validation_data:
+            expected_outputs = item[NUM_INPUT_FEATURES:]
+            idx = 0
+            for output in expected_outputs:
+                if output == 1:
+                    expected.append(idx)
+                idx += 1
+
+        cnf_matrix = confusion_matrix([0, 1, 1, 0], [0, 1, 1, 0])
+        plt.figure()
+        plot_confusion_matrix(cnf_matrix, classes=["0", "1"], normalize=True,
+                              title='Confusion Matrix: Fold {}'.format(fold+1))
         # END fold
-    # ax.legend(MOMENTUMS)
-    # plt.show()
 
-    # begin experiement section
-    # create sampling from the [-2.1, 2.1] x [-2.1, 2.1] square
-    testing_data = [[round(random.uniform(-2.1, 2.1), 2),
-                     round(random.uniform(-2.1, 2.1), 2), random.uniform(-0.1, 0.1)] for _ in range(1500)]
-
-    classifications = []
-
-    # do a forward pass to get the outputs from the network
-    # loop over pieces of data in testing set
-    for k in range(len(testing_data)):
-
-        # get the specific item out of the testing set
-        data = testing_data[k]
-        inputs = data[:NUM_INPUT_FEATURES]
-
-        # no longer need the data row
-        del data
-
-        testing_phi_v = []
-
-        # loop over layers
-        for layer in range(NUM_LAYERS):
-
-            # add placeholder for next layer
-            testing_phi_v.append([])
-
-            # loop over nodes in layer
-            for node in range(len(weights[layer])):
-
-                # variable to track induced local field
-                v = 0
-
-                # if the layer is the first hidden layer, use inputs instead of y's
-                # from previous layer
-                if layer is 0:
-                    for i in range(len(inputs)):
-                        v += weights[layer][node][i] * inputs[i]
-
-                else:
-                    # loop over the phi_v, or y, input to the node, updating v
-                    for i in range(len(testing_phi_v[layer-1])):
-                        v += weights[layer][node][i] * \
-                            testing_phi_v[layer-1][i]
-
-                # add the bias term for the node
-                v += biases[layer][node]
-
-                # store the phi(v) for the node
-                testing_phi_v[layer].append(phi(v))
-
-        outputs = testing_phi_v[NUM_LAYERS-1]
-        max_output = 0
-        output_class = -1  # invalid to start
-        idx = 0
-        for output in outputs:
-            if output > max_output:
-                max_output = output
-                output_class = idx
-            idx += 1
-        classifications.append(output_class)
-
-    # code to show scatter plot of data classifications
-    # colors = ["#0000FF", "#FF0000"]
-    # # we now have classifications for our testing set
-    # plt.scatter([x[0] for x in testing_data], [x[1]
-    #                                            for x in testing_data], c=[colors[x] for x in classifications])
-    # plt.title("Cross with 3rd Feature")
-    # plt.show()
+    plt.show()
 
 
 def phi(v):
