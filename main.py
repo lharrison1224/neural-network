@@ -12,9 +12,9 @@ LEARNING_RATE = 0.7
 MOMENTUM = 0.3
 ACTIVATION_SLOPE_PARAM = 1
 ACTIVATION_FUNCTION = "SIGMOID"
-LAYERS = [11, 2]
+LAYERS = [8, 2]
 NUM_LAYERS = len(LAYERS)
-NUM_INPUT_FEATURES = 3
+NUM_INPUT_FEATURES = 4
 # the max number of epochs that will train if SSE does not converge below threshold
 NUM_EPOCHS = 100
 SSE_THRESHOLD = 0.001
@@ -25,6 +25,9 @@ def main():
 
     weights = []
     biases = []
+
+    total_predicted = []
+    total_expected = []
 
     # randomly initalize our network weights
     for layer in range(NUM_LAYERS):
@@ -51,11 +54,33 @@ def main():
     training_data_full = []
 
     # read training data
-    with open("data/training.csv", "r", encoding="utf-8-sig") as csvfile:
-        contents = csv.reader(csvfile)
-        for row in contents:
-            new_row = [float(item) for item in row]
-            training_data_full.append(new_row)
+    # with open("data/training.csv", "r", encoding="utf-8-sig") as csvfile:
+    #     contents = csv.reader(csvfile)
+    #     for row in contents:
+    #         new_row = [float(item) for item in row]
+    #         training_data_full.append(new_row)
+
+    # read data from txt file
+    with open("data/training.txt", "r") as txt_file:
+        lines = txt_file.readlines()
+        for line in lines:
+            parts = line[1:-1].split("  ")
+            i = 0
+            tmp = []
+            for part in parts:
+                if i < NUM_INPUT_FEATURES:
+                    tmp.append(float(part))
+                else:
+                    if part == '1':
+                        tmp.append(1.0)
+                        tmp.append(0.0)
+                    else:
+                        tmp.append(0.0)
+                        tmp.append(1.0)
+                i += 1
+            training_data_full.append(tmp)
+
+    random.shuffle(training_data_full)
 
     start = datetime.datetime.now()
 
@@ -310,12 +335,18 @@ def main():
                     expected.append(idx)
                 idx += 1
 
-        cnf_matrix = confusion_matrix([0, 1, 1, 0], [0, 1, 1, 0])
+        cnf_matrix = confusion_matrix(expected, classifications)
         plt.figure()
         plot_confusion_matrix(cnf_matrix, classes=["0", "1"], normalize=True,
                               title='Confusion Matrix: Fold {}'.format(fold+1))
+        total_expected += expected
+        total_predicted += classifications
         # END fold
 
+    cnf_matrix = confusion_matrix(total_expected, total_predicted)
+    plt.figure()
+    plot_confusion_matrix(cnf_matrix, classes=["0", "1"], normalize=True,
+                          title='Confusion Matrix: All Folds Aggregated')
     plt.show()
 
 
