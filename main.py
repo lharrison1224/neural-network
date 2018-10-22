@@ -8,15 +8,15 @@ from sklearn.metrics import confusion_matrix
 import matplotlib.pyplot as plt
 import numpy as np
 
-LEARNING_RATE = 0.2
+LEARNING_RATE = 0.3
 MOMENTUM = 0.1
 ACTIVATION_SLOPE_PARAM = 1
 ACTIVATION_FUNCTION = "SIGMOID"
-LAYERS = [4, 2]
+LAYERS = [8, 2]
 NUM_LAYERS = len(LAYERS)
 NUM_INPUT_FEATURES = 4
 # the max number of epochs that will train if SSE does not converge below threshold
-NUM_EPOCHS = 500
+NUM_EPOCHS = 30
 SSE_THRESHOLD = 0.001
 NUM_FOLDS = 5
 
@@ -80,12 +80,17 @@ def main():
                 i += 1
             training_data_full.append(tmp)
 
-    random.shuffle(training_data_full)
-
     start = datetime.datetime.now()
 
-    training_folds = [training_data_full[i*(math.ceil(len(training_data_full)/NUM_FOLDS)):(
-        i+1)*(math.ceil(len(training_data_full)/NUM_FOLDS))] for i in range(NUM_FOLDS)]
+    training_folds = []
+    for i in range(NUM_FOLDS):
+        tmp = training_data_full[i*100:(i+1)*100] + \
+            training_data_full[(5+i)*100:(5+i+1)*100]
+        random.shuffle(tmp)
+        training_folds.append(tmp)
+
+    # training_folds = [training_data_full[i*(math.ceil(len(training_data_full)/NUM_FOLDS)):(
+    #    i+1)*(math.ceil(len(training_data_full)/NUM_FOLDS))] for i in range(NUM_FOLDS)]
 
     for fold in range(NUM_FOLDS):
         prev_biases = []
@@ -337,7 +342,7 @@ def main():
 
         cnf_matrix = confusion_matrix(expected, classifications)
         plt.figure()
-        plot_confusion_matrix(cnf_matrix, classes=["0", "1"], normalize=True,
+        plot_confusion_matrix(cnf_matrix, classes=["0", "1"],
                               title='Fold {} ({}:{}:2)'.format(fold+1, NUM_INPUT_FEATURES, LAYERS[0]))
         total_expected += expected
         total_predicted += classifications
@@ -345,7 +350,7 @@ def main():
 
     cnf_matrix = confusion_matrix(total_expected, total_predicted)
     plt.figure()
-    plot_confusion_matrix(cnf_matrix, classes=["0", "1"], normalize=True,
+    plot_confusion_matrix(cnf_matrix, classes=["0", "1"],
                           title='All Folds ({}:{}:2)'.format(NUM_INPUT_FEATURES, LAYERS[0]))
     plt.show()
 
